@@ -1,0 +1,37 @@
+machine:
+  python:
+    version: 2.7.9
+
+checkout:
+  post:
+    - >
+      if [ -n "$CI_PULL_REQUEST" ]; then
+        PR_ID=${CI_PULL_REQUEST##*/}
+        git fetch origin +refs/pull/$PR_ID/merge:
+        git checkout -qf FETCH_HEAD
+      fi
+
+dependencies:
+  override:
+    - pip install -U pip
+    - pip install -U setuptools
+    - pip install ipaddress==1.0.19
+    - pip install https://github.com/cloudify-cosmo/cloudify-common/archive/master.zip
+    - pip install https://github.com/cloudify-cosmo/cloudify-cli/archive/master.zip
+    - pip install https://github.com/cloudify-cosmo/cloudify-aws-plugin/archive/1.4.10.zip
+
+test:
+  override:
+    - cfy blueprints validate blueprint.yaml
+    - cfy blueprints validate openstack-blueprint.yaml
+    - cfy blueprints validate openstack-windows-blueprint.yaml
+    - cfy blueprints validate singlehost-blueprint.yaml
+    - cfy blueprints validate ec2-blueprint.yaml
+    - cfy blueprints validate ec2-windows-blueprint.yaml
+    - cfy blueprints validate openstack-windows-winrm-blueprint.yaml
+
+deployment:
+  release:
+    tag: /.*/
+    commands:
+      - (true)
